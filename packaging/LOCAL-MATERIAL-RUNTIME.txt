@@ -1,0 +1,32 @@
+离线材质处理运行包（Windows x64）
+
+两版安装包使用同一份 CPU 运行包。客户电脑不需要另外安装 Python、CUDA，
+本地处理不下载模型，也不会把视频交给新的第三方服务。
+
+构建输入
+1. packaging/local-material-runtime.lock.json 固定官方 CPython 压缩包、19 个
+   PyPI wheel、两个 MediaPipe 模型和许可证的 SHA256。
+2. packaging/local-material-requirements.txt 固定所有直接与间接 Python 依赖。
+3. 在构建缓存中准备 downloads/python-3.13.16-embed-amd64.zip、wheels/*.whl、
+   runtime/models/*.task、runtime/licenses/MEDIAPIPE_LICENSE.txt。
+   官方 Python 地址在 lock 中；wheel 从 pypi.org 对应版本下载；模型由
+   storage.googleapis.com/mediapipe-models 提供。文件字节必须匹配锁定 SHA。
+
+构建（仓库根目录；output-dir 必须是新目录）
+python -I -B -X utf8 packaging/prepare-local-runtime.py --cache-dir CACHE --output-dir .test-output/package-tools/local-material-cpu-release/runtime
+
+此步骤只解包经过校验的公共依赖，不从开发者的 Python/venv 复制文件，不运行
+pip、不访问网络。生成 runtime-manifest.json，记录每个运行文件的 SHA/大小。
+保留各 wheel 原有许可证和版权声明；不会收录测试视频、校准标记或用户密钥。
+
+scripts/build-windows.ps1 在两版构建中调用 copy-local-runtime.mjs，先逐文件
+核验运行包，再复制通用 worker 的直接源码文件。排除 __pycache__ 和 .pyc。
+可通过 -LocalMaterialRuntime 指定已按以上流程准备的目录；不允许回落到系统
+Python 或开发虚拟环境。
+
+验证要求
+- 从含中文、空格的另一目录实际启动捆绑 Python，以 -I -B -X utf8 运行。
+- 导入 NumPy/OpenCV/MediaPipe，确认其文件位于捆绑运行包内。
+- 实际加载两个本地模型，执行人脸/手关键点推理。
+- 通过应用 API 执行真实片段处理，并在目标播放器检查完整视频及音轨。
+- 运行包可用、安装程序编译成功都不代表面霜效果通过；内容验收通过后才能发布。

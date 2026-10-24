@@ -1,0 +1,16 @@
+{
+  "name": "wan-replace-studio",
+  "version": "2.2.9",
+  "edition": "developer",
+  "private": true,
+  "description": "Omni-Analysis 视频解析与 WAN3.0 资产、音色、台词编辑工作台",
+  "type": "module",
+  "engines": { "node": ">=24.0.0" },
+  "scripts": {
+    "start": "node src/main.js",
+    "package:windows": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/build-windows.ps1",
+    "test": "node --test --test-concurrency=1 test/*.test.js",
+    "check": "node --check src/main.js && node --check src/story.js && node --check src/analysis-json.js && node --check src/full-dialogue.js && node --check src/analysis.js && node --check src/studio-api.js && node --check public/app.js && node --check public/studio.js && node --check public/full-dialogue-ui.js"
+  },
+  "dependencies": { "busboy": "1.6.0", "express": "5.2.1" }
+}

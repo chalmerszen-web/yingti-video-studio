@@ -1,0 +1,17 @@
+function savedRoute(value) {
+  try {
+    if (typeof value !== 'string' || !value.startsWith('/') || value.startsWith('//')) return null;
+    const url = new URL(value, 'http://local.invalid');
+    if (url.origin !== 'http://local.invalid' || !['/', '/legacy'].includes(url.pathname)) return null;
+    const query = new URLSearchParams();
+    for (const key of ['project', 'job']) {
+      const id = url.searchParams.get(key);
+      if (id && !/^[a-f0-9-]{36}$/i.test(id)) return null;
+      if (id) query.set(key, id);
+    }
+    const view = url.searchParams.get('view');
+    if (view && ['import','analysis','edit','generate','projects','records','record'].includes(view)) query.set('view', view);
+    if (url.searchParams.get('demo') === '1') query.set('demo', '1');
+    return url.pathname + (query.size ? '?' + query : '');
+  } catch { return null; }
+}
